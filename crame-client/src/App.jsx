@@ -1,22 +1,39 @@
-import React from 'react';
-import './App.css';
+import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+
+// HomePage Structure
+import Layout from './components/Layout';
+import ArticlePage from './pages/ArticlePage';
+import HomePage from './pages/HomePage';
+import AboutPage from './pages/AboutPage';
+
+const routes = [
+  {
+    path: '/',
+    element: <Layout />,
+    children: [
+      {
+        path: '',
+        element: <HomePage />,
+      },
+      {
+        path: 'about',
+        element: <AboutPage />,
+      },
+      {
+        path: 'articles',
+        element: <ArticlePage />,
+      },
+    ],
+  },
+];
+
+const router = createBrowserRouter(routes);
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <h1>Welcome to My React App!</h1>
-        <p>
-          Name: Sean Angelo Crame<br />
-          Email: cramesm@students.national-u.edu.ph<br />
-          github: <a href="https://github.com/cramesm">cramesm</a><br />
-          Other Personal Info:<br />
-          - Age: 21 years old<br />
-          - Course: BS Information Technology<br />
-          - Hobbies: Playing video games, watching movies, and coding<br />
-        </p>
-      </header>
-    </div>
+    <>
+      <RouterProvider router={router} />
+    </>
   );
 }
 
