@@ -1,13 +1,16 @@
 import { Outlet } from 'react-router-dom';
 import NavBar from './NavBar';
+import Footer from './Footer';
 
 const Layout = () => {
   return (
-    <div className="min-h-screen bg-zinc-100 text-zinc-900">
+    <div className="min-h-screen bg-black text-white flex flex-col">
       <NavBar />
-      <main className="pb-16 pt-20">
+      <main className="grow pt-20">
         <Outlet />
       </main>
+      {/* Enhancement 1: Implementation of the custom Footer */}
+      <Footer />
     </div>
   );
 };

@@ -1,10 +1,10 @@
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
-
-// HomePage Structure
 import Layout from './components/Layout';
+import ArticleListPage from './pages/ArticleListPage';
 import ArticlePage from './pages/ArticlePage';
 import HomePage from './pages/HomePage';
 import AboutPage from './pages/AboutPage';
+import NotFoundPage from './pages/NotFoundPage';
 
 const routes = [
   {
@@ -21,7 +21,15 @@ const routes = [
       },
       {
         path: 'articles',
+        element: <ArticleListPage />,
+      },
+      {
+        path: 'articles/:articleId',
         element: <ArticlePage />,
+      },
+      {
+        path: '*',
+        element: <NotFoundPage />,
       },
     ],
   },
@@ -31,9 +39,7 @@ const router = createBrowserRouter(routes);
 
 function App() {
   return (
-    <>
-      <RouterProvider router={router} />
-    </>
+    <RouterProvider router={router} />
   );
 }
 

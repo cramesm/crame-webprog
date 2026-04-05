@@ -24,9 +24,9 @@ const HomePage = () => {
 
           <div className="rounded-xl overflow-hidden shadow-2xl shadow-red-900/40 border-4 border-zinc-800 bg-zinc-950">
             <div className="flex aspect-video items-center justify-center bg-zinc-950 overflow-hidden">
-              <img 
-                src="https://images.unsplash.com/photo-1612036781124-847f8939b154?auto=format&fit=crop&w=1200&q=80" 
-                alt="Cinematic Universe" 
+              <img
+                src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/Marvel_Cinematic_Universe_logo.png/500px-Marvel_Cinematic_Universe_logo.png"
+                alt="Cinematic Universe"
                 className="w-full h-full object-cover opacity-90"
               />
             </div>
