@@ -7,7 +7,7 @@ export default function NotFoundPage() {
             <div className="max-w-4xl w-full mx-auto mt-24 border-4 border-[#ED1D24] bg-zinc-950 p-8 shadow-[12px_12px_0px_#ED1D24] relative overflow-hidden">
                 {/* Glitch lines / decorative scanlines */}
                 <div className="absolute inset-0 opacity-10 bg-[radial-gradient(ellipse_at_center,var(--tw-gradient-stops))] from-zinc-800 via-transparent to-transparent pointer-events-none"></div>
-                <div className="absolute top-0 left-0 w-full h-[2px] bg-red-500/20 shadow-[0_0_8px_4px_rgba(237,29,36,0.3)] pointer-events-none"></div>
+                <div className="absolute top-0 left-0 w-full h-0.5 bg-red-500/20 shadow-[0_0_8px_4px_rgba(237,29,36,0.3)] pointer-events-none"></div>
 
                 <div className="relative z-10">
                     <p className="text-[#ED1D24] text-xs font-black uppercase tracking-[0.3em] mb-2 font-mono">
@@ -15,7 +15,7 @@ export default function NotFoundPage() {
                     </p>
                     <h1 className="text-5xl sm:text-7xl font-black text-white uppercase tracking-tight leading-none mb-6">
                         Error <span className="text-[#ED1D24]">404</span>
-                    </h1>
+                                                                                                                                                              </h1>
                     
                     <div className="bg-[#ED1D24] py-2 px-4 inline-block mb-6">
                         <h2 className="text-black font-bold uppercase tracking-widest text-lg">

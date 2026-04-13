@@ -1,12 +1,12 @@
 import { useParams } from 'react-router-dom';
-import articles from '../components/article-content';
-import NotFoundPage from './NotFoundPage';
+import articles from '../../assets/article-content';
+import NotFoundPage from '../NotFoundPage';
 
 export default function ArticlePage() {
-    const { articleId } = useParams();
-    
+    const { name } = useParams();
+
     // Find the current article based on URL
-    const article = articles.find(a => a.name === articleId);
+    const article = articles.find(a => a.name === name);
 
     // If article not found, display 404
     if (!article) {

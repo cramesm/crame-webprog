@@ -1,9 +1,12 @@
 import { NavLink } from 'react-router-dom';
 
+/* Enhancement 3: Add access point (button or link) on the NavBar */
 const links = [
   { label: 'Home', to: '/' },
   { label: 'About', to: '/about' },
   { label: 'Articles', to: '/articles' },
+  { label: 'Sign In', to: '/auth/signin' },
+  { label: 'Sign Up', to: '/auth/signup' },
 ];
 
 const navLinkClassName = ({ isActive }) =>
