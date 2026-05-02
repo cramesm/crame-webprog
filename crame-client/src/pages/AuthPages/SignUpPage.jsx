@@ -11,7 +11,7 @@ const SignUpPage = () => {
     return (
         <div className="bg-black border-l-4 border-zinc-800 p-8 sm:p-10 shadow-2xl">
             <h1 className="text-3xl font-black tracking-tight text-white sm:text-4xl uppercase">Register Agent</h1>
-            <p className="mt-3 text-sm leading-6 text-zinc-400 uppercase tracking-[0.1em]">
+            <p className="mt-3 text-sm leading-6 text-zinc-400 uppercase tracking-widest">
                 Create a new identity profile in the global database network.
             </p>
 
