@@ -1,0 +1,58 @@
+[
+  {
+    "id": 1,
+    "firstName": "Nick",
+    "lastName": "Fury",
+    "age": 55,
+    "gender": "male",
+    "contactNumber": "09123456789",
+    "email": "director@shield.gov",
+    "role": "admin",
+    "username": "nfury",
+    "password": "Password123!",
+    "address": "Triskelion, Washington D.C.",
+    "isActive": true
+  },
+  {
+    "id": 2,
+    "firstName": "Maria",
+    "lastName": "Hill",
+    "age": 35,
+    "gender": "female",
+    "contactNumber": "09987654321",
+    "email": "mhill@shield.gov",
+    "role": "admin",
+    "username": "mhill",
+    "password": "Password123!",
+    "address": "Triskelion, Washington D.C.",
+    "isActive": true
+  },
+  {
+    "id": 3,
+    "firstName": "Tony",
+    "lastName": "Stark",
+    "age": 48,
+    "gender": "male",
+    "contactNumber": "09111111111",
+    "email": "tony@stark.com",
+    "role": "viewer",
+    "username": "ironman",
+    "password": "Password123!",
+    "address": "Stark Tower, NYC",
+    "isActive": true
+  },
+  {
+    "id": 4,
+    "firstName": "Natasha",
+    "lastName": "Romanoff",
+    "age": 34,
+    "gender": "female",
+    "contactNumber": "09222222222",
+    "email": "nat@shield.gov",
+    "role": "editor",
+    "username": "blackwidow",
+    "password": "Password123!",
+    "address": "Classified",
+    "isActive": false
+  }
+]
