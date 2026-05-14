@@ -1,13 +1,21 @@
 const express = require('express');
-// import functions
-const { getUsers, createUser, updateUser, deleteUser, loginUser, } = require('../controllers/userController');
-
 const router = express.Router();
+const userController = require('../controllers/userController');
 
-router.route('/').get(getUsers).post(createUser);
+// Debug log to catch the error before the server crashes
+console.log('--- USER CONTROLLER INSPECTION ---');
+console.log('Controller Keys:', Object.keys(userController));
+console.log('updateUser type:', typeof userController.updateUser);
+console.log('deleteUser type:', typeof userController.deleteUser);
+console.log('---------------------------------');
 
-router.route('/:id').put(updateUser).delete(deleteUser);
+// Routes
+router.get('/', userController.getUsers);
+router.post('/', userController.createUser);
+router.post('/login', userController.loginUser);
 
-router.post('/login', loginUser);
+// ID-based routes
+router.put('/:id', userController.updateUser);
+router.delete('/:id', userController.deleteUser);
 
 module.exports = router;
