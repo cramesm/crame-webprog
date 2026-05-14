@@ -1,13 +1,40 @@
-import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import Button from '../../components/Button';
+import { loginUser } from '../../services/UserServices';
 
-// Enhancement 1: Make and revise design for the SignInPage
+// Design tokens for the S.H.I.E.L.D. interface
 const inputClasses =
     'mt-2 w-full border-2 border-zinc-800 bg-zinc-950 px-4 py-3 text-sm text-white outline-none transition placeholder:text-zinc-600 focus:border-[#ED1D24] focus:bg-black rounded-none shadow-[2px_2px_0px_transparent] focus:shadow-[4px_4px_0px_#ED1D24]';
 
 const actionButtonClassName = 'w-full rounded-none py-3 text-[11px] tracking-[0.2em] font-black uppercase';
 
-const SignInPage = () => {
+function SignInPage() {
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
+    const navigate = useNavigate();
+
+    const handleLogin = async (e) => {
+        e.preventDefault();
+        try {
+            // Call the login API using the provided credentials
+            const { data } = await loginUser({ email, password });
+            console.log('Login successful:', data);
+
+            // Persist session data to localStorage
+            localStorage.setItem('token', data.token);
+            localStorage.setItem('firstName', data.firstName);
+            localStorage.setItem('type', data.type); 
+
+            // Navigate to the dashboard with the user's session state
+            navigate('/dashboard', { state: { firstName: data.firstName, type: data.type } });
+        } catch (err) {
+            console.error('Login failed:', err.response?.data?.message || err.message);
+            setError(err.response?.data?.message || 'Login failed. Please try again.');
+        }
+    };
+
     return (
         <div className="bg-black border-l-4 border-[#ED1D24] p-8 sm:p-10 shadow-2xl shadow-red-900/10">
             <h1 className="text-3xl font-black tracking-tight text-white sm:text-4xl uppercase">Sign In Protocol</h1>
@@ -15,7 +42,13 @@ const SignInPage = () => {
                 Access authorized personnel files and S.H.I.E.L.D. data archives.
             </p>
 
-            <form className="mt-8 space-y-6">
+            {error && (
+                <div className="mt-4 p-3 border border-[#ED1D24] bg-red-950/30 text-[#ED1D24] text-[11px] uppercase tracking-widest font-bold">
+                    [ERROR]: {error}
+                </div>
+            )}
+
+            <form onSubmit={handleLogin} className="mt-8 space-y-6">
                 <div>
                     <label htmlFor="signin-email" className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#ED1D24]">
                         Identification Email
@@ -23,6 +56,9 @@ const SignInPage = () => {
                     <input
                         id="signin-email"
                         type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
                         placeholder="agent@shield.gov"
                         autoComplete="email"
                         className={inputClasses}
@@ -36,6 +72,9 @@ const SignInPage = () => {
                     <input
                         id="signin-password"
                         type="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
                         placeholder="••••••••••"
                         autoComplete="current-password"
                         className={inputClasses}
@@ -79,6 +118,6 @@ const SignInPage = () => {
             </div>
         </div>
     );
-};
+}
 
 export default SignInPage;

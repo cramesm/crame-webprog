@@ -112,7 +112,7 @@ const DashboardPage = () => {
       {stats.map((s) => (
         <Card key={s.label} sx={{ ...glassCardSx, flex: '1 1 220px' }}>
           <CardContent sx={{ p: 3 }}>
-            <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
+            <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <Box>
                 <Typography sx={{ fontSize: '0.65rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.2em', color: MUTED, mb: 1 }}>{s.label}</Typography>
                 <Typography variant="h3" sx={{ fontWeight: 900, color: '#fff', textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>{s.value}</Typography>
@@ -192,7 +192,7 @@ const DashboardPage = () => {
     <CardContent sx={{ p: 3 }}>
       <Typography sx={labelSx}>Diagnostics</Typography>
       <Typography variant="h6" sx={titleSx}>System Status</Typography>
-      <Stack direction={{ xs: 'column', md: 'row' }} spacing={3} justifyContent="space-around">
+      <Stack direction={{ xs: 'column', md: 'row' }} spacing={3} sx={{ justifyContent: 'space-around' }}>
         {gauges.map((gauge) => (
           <Box key={gauge.label} sx={{ textAlign: 'center' }}>
             <Suspense fallback={<LoadingFallback height={200} message="ANALYZING..." />}>

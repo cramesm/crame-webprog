@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   Alert,
   Box,
@@ -24,13 +25,15 @@ import { useTheme } from '@mui/material/styles';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import { DataGrid } from '@mui/x-data-grid';
-import usersSeed from '../../data/users.json?raw';
 
 import GroupsIcon from '@mui/icons-material/Groups';
 import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import SecurityIcon from '@mui/icons-material/Security';
 import SearchIcon from '@mui/icons-material/Search';
+
+// Import API services
+import { fetchUsers, createUser, updateUser } from '../../services/UserServices';
 
 // ── Theme Constants ──
 const NEON_RED = '#ff2a2a';
@@ -89,50 +92,55 @@ const genders = ['male', 'female', 'other'];
 
 const blankForm = {
   firstName: '', lastName: '', age: '', gender: '', contactNumber: '',
-  email: '', role: 'editor', username: '', password: '', address: '', isActive: true,
+  email: '', type: 'viewer', username: '', password: '', address: '', isActive: true,
 };
 
 const labelize = (value) => value ? `${value.charAt(0).toUpperCase()}${value.slice(1)}` : '';
 
-const loadUsers = () => {
-  try {
-    return {
-      users: JSON.parse(usersSeed).map((user, index) => ({
-        id: Number(user.id) || index + 1,
-        firstName: String(user.firstName ?? '').trim(),
-        lastName: String(user.lastName ?? '').trim(),
-        age: String(user.age ?? '').trim(),
-        gender: genders.includes(String(user.gender ?? '').trim().toLowerCase()) ? String(user.gender ?? '').trim().toLowerCase() : '',
-        contactNumber: String(user.contactNumber ?? '').trim(),
-        email: String(user.email ?? '').trim().toLowerCase(),
-        role: roles.includes(String(user.role ?? '').trim().toLowerCase()) ? String(user.role ?? '').trim().toLowerCase() : 'editor',
-        username: String(user.username ?? '').trim().toLowerCase(),
-        password: String(user.password ?? ''),
-        address: String(user.address ?? '').trim(),
-        isActive: typeof user.isActive === 'boolean' ? user.isActive : true,
-      })),
-      error: '',
-    };
-  } catch {
-    return { users: [], error: 'Unable to read users from src/assets/users.json.' };
-  }
-};
-
-const seed = loadUsers();
-
 // ── Main Component ──
 const UsersPage = () => {
+  const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const [users, setUsers] = useState(seed.users);
+
+  // Enhancement 1: Role-based access control (RBAC) - Redirect non-admins
+  useEffect(() => {
+    const userType = localStorage.getItem('type');
+    if (userType !== 'admin') {
+      navigate('/dashboard');
+    }
+  }, [navigate]);
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState({ open: false, id: null });
   const [form, setForm] = useState(blankForm);
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
+  const [apiError, setApiError] = useState('');
   
   // Enhancement 2: Users Page Search & Filters
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState({ role: 'all', gender: 'all', status: 'all' });
+
+  // Load users from API
+  const loadUsers = async () => {
+    try {
+      setLoading(true);
+      const { data } = await fetchUsers();
+      // Adjust according to API response structure (e.g., data.users or just data)
+      setUsers(data.users || data);
+      setApiError('');
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      setApiError('Unable to synchronize with S.H.I.E.L.D. database.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadUsers();
+  }, []);
 
   const filteredUsers = users.filter((user) => {
     const searchLower = searchQuery.toLowerCase();
@@ -142,7 +150,7 @@ const UsersPage = () => {
       String(user.email).toLowerCase().includes(searchLower) ||
       String(user.username).toLowerCase().includes(searchLower);
       
-    const matchesRole = filters.role === 'all' || user.role === filters.role;
+    const matchesRole = filters.role === 'all' || user.type === filters.role;
     const matchesGender = filters.gender === 'all' || user.gender === filters.gender;
     const matchesStatus = filters.status === 'all' || 
       (filters.status === 'active' ? user.isActive : !user.isActive);
@@ -153,8 +161,9 @@ const UsersPage = () => {
   const resetForm = () => { setForm({ ...blankForm }); setErrors({}); };
 
   const openModal = (user) => {
-    setModal({ open: true, id: user?.id ?? null });
-    setForm(user ? { ...blankForm, ...user } : { ...blankForm });
+    setModal({ open: true, id: user?._id ?? null });
+    // When editing, clear password field for security
+    setForm(user ? { ...blankForm, ...user, password: '' } : { ...blankForm });
     setErrors({});
   };
 
@@ -177,17 +186,22 @@ const UsersPage = () => {
     [
       ['firstName', 'First name'], ['lastName', 'Last name'], ['age', 'Age'],
       ['gender', 'Gender'], ['contactNumber', 'Contact number'], ['email', 'Email'],
-      ['role', 'Role'], ['username', 'Username'], ['password', 'Password'], ['address', 'Address'],
+      ['type', 'Role'], ['username', 'Username'], ['address', 'Address'],
     ].forEach(([key, label]) => {
       if (!String(form[key]).trim()) nextErrors[key] = `${label} is required.`;
     });
 
+    // Password required only for new users
+    if (!modal.id && !form.password) {
+        nextErrors.password = 'Password is required.';
+    }
+
     if (!nextErrors.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) nextErrors.email = 'Enter a valid email address.';
-    if (!nextErrors.email && users.some((user) => user.id !== modal.id && user.email === email)) nextErrors.email = 'Email address already exists.';
-    if (!nextErrors.username && users.some((user) => user.id !== modal.id && user.username === username)) nextErrors.username = 'Username already exists.';
+    if (!nextErrors.email && users.some((user) => user._id !== modal.id && user.email === email)) nextErrors.email = 'Email address already exists.';
+    if (!nextErrors.username && users.some((user) => user._id !== modal.id && user.username === username)) nextErrors.username = 'Username already exists.';
     
     // Enhancement 3: Form Validations
-    if (!nextErrors.password && form.password.length < 8) nextErrors.password = 'Password must be at least 8 characters.';
+    if (!nextErrors.password && form.password && form.password.length < 8) nextErrors.password = 'Password must be at least 8 characters.';
     if (!nextErrors.contactNumber && !/^\d{11}$/.test(form.contactNumber)) nextErrors.contactNumber = 'Contact number must be exactly 11 digits.';
     if (!nextErrors.age && !/^\d+$/.test(form.age)) nextErrors.age = 'Age must be a number only.';
     if (!nextErrors.username && /\s/.test(form.username)) nextErrors.username = 'Username must not contain spaces.';
@@ -195,28 +209,46 @@ const UsersPage = () => {
     return nextErrors;
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
     const nextErrors = validate();
     if (Object.keys(nextErrors).length) { setErrors(nextErrors); return; }
 
-    const nextUser = {
-      firstName: form.firstName.trim(), lastName: form.lastName.trim(), age: form.age.trim(),
-      gender: form.gender.trim().toLowerCase(), contactNumber: form.contactNumber.trim(),
-      email: form.email.trim().toLowerCase(), role: form.role.trim().toLowerCase(),
-      username: form.username.trim().toLowerCase(), password: form.password,
-      address: form.address.trim(), isActive: form.isActive,
-    };
+    try {
+      const payload = {
+        firstName: form.firstName.trim(), lastName: form.lastName.trim(), age: form.age,
+        gender: form.gender.toLowerCase(), contactNumber: form.contactNumber.trim(),
+        email: form.email.trim().toLowerCase(), type: form.type,
+        username: form.username.trim().toLowerCase(),
+        address: form.address.trim(), isActive: form.isActive,
+      };
 
-    setUsers((prev) =>
-      modal.id ? prev.map((user) => (user.id === modal.id ? { ...user, ...nextUser } : user))
-        : [...prev, { id: prev.reduce((max, user) => Math.max(max, Number(user.id) || 0), 0) + 1, ...nextUser }]
-    );
-    closeModal();
+      // Only include password if it was provided (important for updates)
+      if (form.password) {
+        payload.password = form.password;
+      }
+
+      if (modal.id) {
+        await updateUser(modal.id, payload);
+      } else {
+        await createUser(payload);
+      }
+
+      await loadUsers();
+      closeModal();
+    } catch (error) {
+      console.error('Error saving user:', error);
+      setApiError('Critical error during record submission.');
+    }
   };
 
-  const toggleStatus = (id) => {
-    setUsers((prev) => prev.map((user) => user.id === id ? { ...user, isActive: !user.isActive } : user));
+  const toggleStatus = async (id, currentStatus) => {
+    try {
+      await updateUser(id, { isActive: !currentStatus });
+      await loadUsers();
+    } catch (error) {
+      console.error('Error toggling user status:', error);
+    }
   };
 
   const fieldProps = (name, label, extra = {}) => {
@@ -268,7 +300,6 @@ const UsersPage = () => {
         );
       },
     },
-    { field: 'id', headerName: 'ID', width: 70 },
     {
       field: 'fullName', headerName: 'Full Name', flex: 1, minWidth: 170,
       valueGetter: (_, row) => `${row.firstName} ${row.lastName}`.trim(),
@@ -279,7 +310,7 @@ const UsersPage = () => {
     { field: 'gender', headerName: 'Gender', width: 90, valueGetter: (_, row) => labelize(row.gender) },
     { field: 'contactNumber', headerName: 'Contact Number', minWidth: 160 },
     { field: 'email', headerName: 'Email', flex: 1.5, minWidth: 220 },
-    { field: 'role', headerName: 'Role', width: 100, valueGetter: (_, row) => labelize(row.role) },
+    { field: 'type', headerName: 'Role', width: 100, valueGetter: (_, row) => labelize(row.type) },
     {
       field: 'status', headerName: 'Status', width: 120, sortable: false,
       renderCell: ({ row }) => {
@@ -303,7 +334,7 @@ const UsersPage = () => {
           <Button size="small" variant="outlined" onClick={() => openModal(row)} sx={{ color: NEON_BLUE, borderColor: 'rgba(59, 130, 246, 0.5)', '&:hover': { borderColor: NEON_BLUE, bgcolor: 'rgba(59, 130, 246, 0.1)' } }}>
             Edit
           </Button>
-          <Button size="small" variant="outlined" onClick={() => toggleStatus(row.id)}
+          <Button size="small" variant="outlined" onClick={() => toggleStatus(row._id, row.isActive)}
             sx={{
               color: row.isActive ? MUTED : NEON_GREEN,
               borderColor: row.isActive ? 'rgba(148, 163, 184, 0.5)' : 'rgba(34, 197, 94, 0.5)',
@@ -318,8 +349,8 @@ const UsersPage = () => {
   ];
 
   const activeCount = users.filter((r) => r.isActive).length;
-  const adminCount = users.filter((r) => r.role === 'admin').length;
-  const editorCount = users.filter((r) => r.role === 'editor').length;
+  const adminCount = users.filter((r) => r.type === 'admin').length;
+  const editorCount = users.filter((r) => r.type === 'editor').length;
 
   const summaryCards = [
     { label: 'Total Personnel', value: users.length, icon: <GroupsIcon sx={{ fontSize: 32, color: NEON_RED, filter: `drop-shadow(0 0 8px ${NEON_RED})` }} />, sub: `${activeCount} currently active` },
@@ -349,14 +380,14 @@ const UsersPage = () => {
         </Button>
       </Box>
 
-      {seed.error && <Alert severity="error" sx={{ mb: 4, bgcolor: 'rgba(255, 42, 42, 0.1)', color: NEON_RED, border: `1px solid rgba(255, 42, 42, 0.3)` }}>{seed.error}</Alert>}
+      {apiError && <Alert severity="error" sx={{ mb: 4, bgcolor: 'rgba(255, 42, 42, 0.1)', color: NEON_RED, border: `1px solid rgba(255, 42, 42, 0.3)` }}>{apiError}</Alert>}
 
       {/* Summary Cards */}
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3} sx={{ mb: 5, flexWrap: 'wrap' }} useFlexGap>
         {summaryCards.map((c) => (
           <Card key={c.label} sx={{ ...glassCardSx, flex: '1 1 220px' }}>
             <CardContent sx={{ p: 3 }}>
-              <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
+              <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <Box>
                   <Typography sx={{ fontSize: '0.65rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.2em', color: MUTED, mb: 1 }}>{c.label}</Typography>
                   <Typography variant="h3" sx={{ fontWeight: 900, color: '#fff', textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>{c.value}</Typography>
@@ -373,7 +404,7 @@ const UsersPage = () => {
       <Card sx={glassCardSx}>
         <CardContent sx={{ p: 0 }}>
           <Box sx={{ p: 3, borderBottom: `1px solid ${GLASS_BORDER}`, background: 'rgba(255,255,255,0.02)' }}>
-            <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', md: 'center' }} spacing={2}>
+            <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} sx={{ justifyContent: 'space-between', alignItems: { xs: 'flex-start', md: 'center' }, width: '100%' }}>
               <Box>
                 <Typography sx={{ fontSize: '0.65rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.2em', color: NEON_RED, mb: 0.5 }}>Personnel Records</Typography>
                 <Typography variant="h6" sx={{ fontWeight: 800, color: '#fff', textTransform: 'uppercase', letterSpacing: '0.05em' }}>System Registry</Typography>
@@ -381,7 +412,7 @@ const UsersPage = () => {
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ width: { xs: '100%', md: 'auto' } }}>
                 <TextField 
                   size="small" placeholder="Search..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
-                  InputProps={{ startAdornment: <InputAdornment position="start"><SearchIcon sx={{ color: MUTED, fontSize: 20 }} /></InputAdornment> }}
+                  slotProps={{ input: { startAdornment: <InputAdornment position="start"><SearchIcon sx={{ color: MUTED, fontSize: 20 }} /></InputAdornment> } }}
                   sx={{ width: { xs: '100%', sm: 200 }, '& .MuiOutlinedInput-root': { color: '#fff', '& fieldset': { borderColor: GLASS_BORDER }, '&:hover fieldset': { borderColor: MUTED }, '&.Mui-focused fieldset': { borderColor: NEON_RED } } }}
                 />
                 <TextField select size="small" value={filters.role} onChange={(e) => setFilters(p => ({...p, role: e.target.value}))}
@@ -404,42 +435,40 @@ const UsersPage = () => {
             </Stack>
           </Box>
           <Box sx={{ height: 600, width: '100%' }}>
-            {filteredUsers.length ? (
-              <DataGrid
+            <DataGrid
                 rows={filteredUsers}
                 columns={columns}
+                getRowId={(row) => row._id}
+                loading={loading}
                 initialState={{ pagination: { paginationModel: { pageSize: 10 } } }}
                 pageSizeOptions={[5, 10, 15]}
                 disableRowSelectionOnClick
                 rowHeight={60}
                 sx={{
-                  border: 'none', borderRadius: 0, color: '#fff', '--DataGrid-rowBorderColor': GLASS_BORDER,
-                  '& .MuiDataGrid-columnHeaders': { bgcolor: 'transparent', color: MUTED, textTransform: 'uppercase', fontSize: '0.7rem', letterSpacing: '0.1em', fontWeight: 800, borderBottom: `2px solid rgba(255,42,42,0.3)` },
-                  '& .MuiDataGrid-cell': { display: 'flex', alignItems: 'center' },
-                  '& .codename-cell': { fontWeight: 800, color: '#fff', textTransform: 'uppercase', letterSpacing: '0.05em', textShadow: '0 0 10px rgba(255,255,255,0.3)' },
-                  '& .MuiDataGrid-row:hover': { bgcolor: 'rgba(255, 42, 42, 0.05)', boxShadow: `inset 0 0 20px rgba(255, 42, 42, 0.1)` },
-                  '& .MuiDataGrid-footerContainer': { borderTop: `1px solid ${GLASS_BORDER}`, bgcolor: 'transparent', color: MUTED },
-                  '& .MuiTablePagination-root': { color: MUTED },
-                  '& .MuiCheckbox-root': { color: MUTED },
-                  '& .MuiCheckbox-root.Mui-checked': { color: NEON_RED },
-                  '& .MuiDataGrid-columnSeparator': { display: 'none' },
+                    border: 'none', borderRadius: 0, color: '#fff', '--DataGrid-rowBorderColor': GLASS_BORDER,
+                    '& .MuiDataGrid-columnHeaders': { bgcolor: 'transparent', color: MUTED, textTransform: 'uppercase', fontSize: '0.7rem', letterSpacing: '0.1em', fontWeight: 800, borderBottom: `2px solid rgba(255,42,42,0.3)` },
+                    '& .MuiDataGrid-cell': { display: 'flex', alignItems: 'center' },
+                    '& .codename-cell': { fontWeight: 800, color: '#fff', textTransform: 'uppercase', letterSpacing: '0.05em', textShadow: '0 0 10px rgba(255,255,255,0.3)' },
+                    '& .MuiDataGrid-row:hover': { bgcolor: 'rgba(255, 42, 42, 0.05)', boxShadow: `inset 0 0 20px rgba(255, 42, 42, 0.1)` },
+                    '& .MuiDataGrid-footerContainer': { borderTop: `1px solid ${GLASS_BORDER}`, bgcolor: 'transparent', color: MUTED },
+                    '& .MuiTablePagination-root': { color: MUTED },
+                    '& .MuiCheckbox-root': { color: MUTED },
+                    '& .MuiCheckbox-root.Mui-checked': { color: NEON_RED },
+                    '& .MuiDataGrid-columnSeparator': { display: 'none' },
                 }}
-              />
-            ) : (
-              <Alert severity="info" sx={{ m: 3, bgcolor: 'rgba(59, 130, 246, 0.1)', color: NEON_BLUE, border: `1px solid rgba(59, 130, 246, 0.3)` }}>
-                No personnel found. Use Add Personnel to create your first record.
-              </Alert>
-            )}
+            />
           </Box>
         </CardContent>
       </Card>
 
       <Dialog open={modal.open} onClose={closeModal} fullWidth fullScreen={isMobile} maxWidth="md"
-        PaperProps={{
-          sx: {
-            bgcolor: DARK_BG, color: '#fff', border: `1px solid rgba(255, 42, 42, 0.3)`, boxShadow: `0 0 30px rgba(255, 42, 42, 0.15)`,
-            backgroundImage: `linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px)`,
-            backgroundSize: '20px 20px',
+        slotProps={{
+          paper: {
+            sx: {
+              bgcolor: DARK_BG, color: '#fff', border: `1px solid rgba(255, 42, 42, 0.3)`, boxShadow: `0 0 30px rgba(255, 42, 42, 0.15)`,
+              backgroundImage: `linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px)`,
+              backgroundSize: '20px 20px',
+            }
           }
         }}
       >
@@ -464,7 +493,7 @@ const UsersPage = () => {
                 <TextField {...fieldProps('email', 'Email Address', { type: 'email' })} />
               </Stack>
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                <TextField {...fieldProps('role', 'Role', { select: true })}>
+                <TextField {...fieldProps('type', 'Role', { select: true })}>
                   {roles.map((role) => <MenuItem key={role} value={role}>{labelize(role)}</MenuItem>)}
                 </TextField>
                 <TextField {...fieldProps('username', 'Username')} />
@@ -472,14 +501,17 @@ const UsersPage = () => {
               <TextField
                 {...fieldProps('password', 'Password', {
                   type: showPassword ? 'text' : 'password',
-                  InputProps: {
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <IconButton edge="end" onClick={() => setShowPassword((prev) => !prev)} onMouseDown={(e) => e.preventDefault()} sx={{ color: MUTED }}>
-                          {showPassword ? <VisibilityOff /> : <Visibility />}
-                        </IconButton>
-                      </InputAdornment>
-                    ),
+                  placeholder: modal.id ? 'Leave blank to keep current' : '',
+                  slotProps: {
+                    input: {
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <IconButton edge="end" onClick={() => setShowPassword((prev) => !prev)} onMouseDown={(e) => e.preventDefault()} sx={{ color: MUTED }}>
+                            {showPassword ? <VisibilityOff /> : <Visibility />}
+                          </IconButton>
+                        </InputAdornment>
+                      ),
+                    },
                   },
                 })}
               />
@@ -515,4 +547,5 @@ const UsersPage = () => {
   );
 };
 
-export default UsersPage;
+export default UsersPage;
+

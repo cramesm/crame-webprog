@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import { styled, useTheme, alpha, ThemeProvider, createTheme } from "@mui/material/styles";
 import Box from "@mui/material/Box";
@@ -45,6 +45,12 @@ const dashboardNavItems = [
     title: "Users",
     to: "/dashboard/users",
     icon: PeopleIcon,
+  },
+  {
+    label: "Articles",
+    title: "Articles",
+    to: "/dashboard/articles",
+    icon: ArticleIcon,
   },
 ];
 
@@ -159,6 +165,7 @@ const DashLayout = () => {
   const [open, setOpen] = useState(false);
   const location = useLocation();
   const pageTitle = getPageTitle(location.pathname);
+  const userType = localStorage.getItem('type');
   const navigate = useNavigate();
 
   const handleDrawerOpen = () => {
@@ -169,9 +176,27 @@ const DashLayout = () => {
     setOpen(false);
   };
 
+  // Enhancement 1: Global Portal Protection
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const userType = localStorage.getItem('type');
+
+    // If no token exists, or if the user is a viewer, deny access to the dashboard
+    if (!token || userType === 'viewer') {
+      navigate('/auth/signin');
+    }
+  }, [navigate]);
+
   const handleLogout = () => {
+    localStorage.clear();
     navigate("/");
   };
+
+  // Enhancement 1: Role-based access control (RBAC) for sidebar navigation
+  const filteredNavItems = dashboardNavItems.filter(item => {
+    if (item.label === "Users") return userType === "admin";
+    return true;
+  });
 
   return (
     <>
@@ -188,7 +213,7 @@ const DashLayout = () => {
               onClick={open ? handleDrawerClose : handleDrawerOpen}
               edge="start"
               // sx={{ marginRight: 5, ...(open && { display: 'none' }) }}
-              sx={{ marginRight: 5, ...open }}
+              sx={{ marginRight: 5, display: open ? 'none' : 'inline-flex' }}
             >
               {open ? <MenuOpenIcon /> : <MenuIcon />}
             </IconButton>
@@ -229,7 +254,7 @@ const DashLayout = () => {
           <Divider />
           {/* Drawer List */}
           <List>
-            {dashboardNavItems.map(({ label, to, icon: Icon }) => (
+            {filteredNavItems.map(({ label, to, icon: Icon }) => (
               <ListItem key={to} disablePadding sx={{ display: "block" }}>
                 <ListItemButton
                   component={Link}
@@ -259,6 +284,7 @@ const DashLayout = () => {
             ))}
           </List>
         </Drawer>
+
         <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
           <DrawerHeader />
           {/* Content */}

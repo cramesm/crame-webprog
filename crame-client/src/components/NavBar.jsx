@@ -7,9 +7,6 @@ const links = [
   { label: 'Home', to: '/' },
   { label: 'About', to: '/about' },
   { label: 'Articles', to: '/articles' },
-  { label: 'Dashboard', to: '/dashboard' },
-  { label: 'Sign In', to: '/auth/signin' },
-  { label: 'Sign Up', to: '/auth/signup' },
 ];
 
 const navLinkClassName = ({ isActive }) =>
@@ -36,6 +33,23 @@ const NavBar = () => {
               {link.label}
             </NavLink>
           ))}
+          {localStorage.getItem('token') && localStorage.getItem('type') !== 'viewer' && (
+            <NavLink to="/dashboard" className={navLinkClassName}>
+              Dashboard
+            </NavLink>
+          )}
+          {!localStorage.getItem('token') ? (
+            <NavLink to="/auth/signin" className={navLinkClassName}>
+              Sign In
+            </NavLink>
+          ) : (
+            <button
+              onClick={() => { localStorage.clear(); window.location.href = '/'; }}
+              className="rounded-full border-2 border-zinc-800 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-zinc-400 hover:text-white hover:border-zinc-600 transition"
+            >
+              Log Out
+            </button>
+          )}
         </nav>
       </div>
     </header>

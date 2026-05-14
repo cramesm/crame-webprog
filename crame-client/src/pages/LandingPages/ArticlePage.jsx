@@ -1,14 +1,35 @@
+import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import articles from '../../data/article-content';
+import { fetchArticleByName } from '../../services/ArticleServices';
 import NotFoundPage from '../NotFoundPage';
 
 export default function ArticlePage() {
     const { name } = useParams();
+    const [article, setArticle] = useState(null);
+    const [loading, setLoading] = useState(true);
 
-    // Find the current article based on URL
-    const article = articles.find(a => a.name === name);
+    useEffect(() => {
+        const loadArticle = async () => {
+            try {
+                const { data } = await fetchArticleByName(name);
+                setArticle(data);
+            } catch (error) {
+                console.error('Error fetching article:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        loadArticle();
+    }, [name]);
 
-    // If article not found, display 404
+    if (loading) {
+        return (
+            <div className="bg-black min-h-screen text-white flex items-center justify-center">
+                <div className="animate-pulse text-[#ED1D24] font-black tracking-widest text-2xl">DECRYPTING INTEL...</div>
+            </div>
+        );
+    }
+
     if (!article) {
         return <NotFoundPage />;
     }
@@ -27,4 +48,4 @@ export default function ArticlePage() {
             </div>
         </div>
     );
-}
+}

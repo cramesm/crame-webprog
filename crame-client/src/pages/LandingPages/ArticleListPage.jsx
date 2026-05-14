@@ -1,8 +1,26 @@
+import { useState, useEffect } from 'react';
 import Button from '../../components/Button';
 import ArticleList from '../../components/ArticleList';
-import articles from '../../data/article-content';
+import { fetchArticles } from '../../services/ArticleServices';
 
 const ArticleListPage = () => {
+  const [articles, setArticles] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadArticles = async () => {
+      try {
+        const { data } = await fetchArticles();
+        setArticles(data);
+      } catch (error) {
+        console.error('Error fetching articles:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadArticles();
+  }, []);
+
   return (
     <div className="flex w-full flex-col gap-6 bg-black min-h-screen text-white">
       <section className="bg-zinc-900 border-b-4 border-[#ED1D24] px-4 py-24 sm:px-6 sm:py-32 lg:px-8">
@@ -32,10 +50,16 @@ const ArticleListPage = () => {
           </div>
         </div>
 
-        <ArticleList articles={articles} />
+        {loading ? (
+          <div className="flex justify-center py-12">
+            <div className="animate-pulse text-[#ED1D24] font-bold tracking-widest">LOADING DATABASE...</div>
+          </div>
+        ) : (
+          <ArticleList articles={articles} />
+        )}
       </section>
     </div>
   );
 };
 
-export default ArticleListPage;
+export default ArticleListPage;
