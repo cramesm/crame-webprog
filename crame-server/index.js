@@ -5,7 +5,7 @@ const path = require("path");
 const bodyParser = require("body-parser");
 const jsonParser = bodyParser.json();
 const connectDB = require("./config/db");
-const userRoutes = require("./routes/userRoutes");
+const personnelRoutes = require("./routes/personnelRoutes");
 const articleRoutes = require("./routes/articleRoutes");
 
 const app = express();
@@ -47,7 +47,7 @@ app.use((req, res, next) => {
 });
 
 // Routes
-app.use("/api/users", userRoutes);
+app.use("/api/users", personnelRoutes);
 app.use("/api/articles", articleRoutes);
 
 // Error Handling
