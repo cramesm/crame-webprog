@@ -22,25 +22,17 @@ app.use(cors());
 
 // Universal CORS
 app.use(cors({
-  origin: true, // Echoes the request origin
+  origin: true,
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
-// Curb Cores Error by adding a header here
-app.use((req, res, next) => {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader(
-    "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content, Accept, Content-Type, Authorization"
-  );
-  res.setHeader(
-    "Access-Control-Allow-Methods",
-    "GET, POST, PUT, DELETE, PATCH, OPTIONS"
-  );
-  next();
-});
+// Explicit OPTIONS handler for preflight
+app.options('*', cors());
+
+// Health Check
+app.get("/", (req, res) => res.send("S.H.I.E.L.D. Server is Operational."));
 
 // Routes
 app.use("/api/users", personnelRoutes);
