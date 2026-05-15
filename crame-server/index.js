@@ -20,17 +20,13 @@ app.use(jsonParser);
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cors());
 
-// vercel options
-const corsOptions = {
-  origin: "*", // Allow all origins
-  credentials: true, // Allow credentials
-  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
-  methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE"],
-  preflightContinue: false,
-  optionsSuccessStatus: 204, // For legacy browser support
-};
-app.options("", cors(corsOptions)); // Pre-flight request for all routes
-app.use(cors(corsOptions));
+// Universal CORS
+app.use(cors({
+  origin: true, // Echoes the request origin
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
 
 // Curb Cores Error by adding a header here
 app.use((req, res, next) => {
