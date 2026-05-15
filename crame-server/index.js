@@ -1,9 +1,12 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
+const path = require("path");
 const connectDB = require("./config/db");
-const personnelRoutes = require("./routes/personnelRoutes");
-const articleRoutes = require("./routes/articleRoutes");
+
+// Using absolute-style paths for Vercel
+const personnelRoutes = require(path.join(__dirname, "routes", "personnelRoutes"));
+const articleRoutes = require(path.join(__dirname, "routes", "articleRoutes"));
 
 const app = express();
 
