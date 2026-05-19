@@ -29,4 +29,11 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: "Server Error" });
 });
 
+if (process.env.NODE_ENV !== "production" || require.main === module) {
+  const PORT = process.env.PORT || 8000;
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}
+
 module.exports = app;

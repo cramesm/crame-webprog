@@ -33,7 +33,7 @@ const NavBar = () => {
               {link.label}
             </NavLink>
           ))}
-          {localStorage.getItem('token') && localStorage.getItem('type') !== 'viewer' && (
+          {localStorage.getItem('token') && (
             <NavLink to="/dashboard" className={navLinkClassName}>
               Dashboard
             </NavLink>

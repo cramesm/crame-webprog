@@ -55,9 +55,6 @@ exports.loginUser = async (req, res) => {
     if (!user.isActive) {
       return res.status(403).json({ message: 'Your account is inactive.' });
     }
-    if (user.type === 'viewer') {
-        return res.status(403).json({ message: 'Access Denied: Viewers are not authorized.' });
-    }
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       return res.status(401).json({ message: 'Invalid credentials' });

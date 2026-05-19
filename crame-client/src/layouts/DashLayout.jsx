@@ -181,8 +181,8 @@ const DashLayout = () => {
     const token = localStorage.getItem('token');
     const userType = localStorage.getItem('type');
 
-    // If no token exists, or if the user is a viewer, deny access to the dashboard
-    if (!token || userType === 'viewer') {
+    // Redirect to signin only if no token exists
+    if (!token) {
       navigate('/auth/signin');
     }
   }, [navigate]);
@@ -192,11 +192,8 @@ const DashLayout = () => {
     navigate("/");
   };
 
-  // Enhancement 1: Role-based access control (RBAC) for sidebar navigation
-  const filteredNavItems = dashboardNavItems.filter(item => {
-    if (item.label === "Users") return userType === "admin";
-    return true;
-  });
+  // Show all navigation items to everyone
+  const filteredNavItems = dashboardNavItems;
 
   return (
     <>
