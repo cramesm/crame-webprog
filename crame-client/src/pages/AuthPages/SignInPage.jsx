@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { Visibility, VisibilityOff } from '@mui/icons-material';
 import Button from '../../components/Button';
 import { loginUser } from '../../services/UserServices';
 
@@ -12,6 +13,7 @@ const actionButtonClassName = 'w-full rounded-none py-3 text-[11px] tracking-[0.
 function SignInPage() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
     const navigate = useNavigate();
 
@@ -69,16 +71,25 @@ function SignInPage() {
                     <label htmlFor="signin-password" className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#ED1D24]">
                         Security Clearance Code
                     </label>
-                    <input
-                        id="signin-password"
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                        placeholder="••••••••••"
-                        autoComplete="current-password"
-                        className={inputClasses}
-                    />
+                    <div className="relative w-full">
+                        <input
+                            id="signin-password"
+                            type={showPassword ? "text" : "password"}
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            required
+                            placeholder="••••••••••"
+                            autoComplete="current-password"
+                            className={`${inputClasses} pr-12`}
+                        />
+                        <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 mt-1 text-zinc-500 hover:text-[#ED1D24] transition-colors"
+                        >
+                            {showPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
+                        </button>
+                    </div>
                     <p className="mt-2 text-[10px] uppercase tracking-wider text-zinc-500">
                         At least Level 8 clearance required.
                     </p>
