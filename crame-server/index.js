@@ -10,8 +10,11 @@ const articleRoutes = require(path.join(__dirname, "routes", "articleRoutes"));
 
 const app = express();
 
-// Database Connection
-connectDB();
+// Database Connection Middleware
+app.use(async (req, res, next) => {
+  await connectDB();
+  next();
+});
 
 app.use(express.json());
 app.use(cors());
